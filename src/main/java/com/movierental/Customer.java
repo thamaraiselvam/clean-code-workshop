@@ -20,45 +20,47 @@ public class Customer {
   }
 
   public String statement() {
-    double totalAmount = 0;
-    int frequentRenterPoints = 0;
-    String result = "Rental Record for " + getName() + "\n";
+
+    return new TextStatement().display(this.getName(), this.totalAmount(), this.frequentRenterPoints());
+  }
+
+  public String htmlStatement(){
+    String result = "<h1>Rental Record for <strong>" + getName() + "</strong></h1>\n";
     for (Rental each : rentals) {
-      double thisAmount = 0;
-      //determine amounts for each line
-      switch (each.getMovie().getPriceCode()) {
-        case Movie.REGULAR:
-          thisAmount += 2;
-          if (each.getDaysRented() > 2)
-            thisAmount += (each.getDaysRented() - 2) * 1.5;
-          break;
-        case Movie.NEW_RELEASE:
-          thisAmount += each.getDaysRented() * 3;
-          break;
-        case Movie.CHILDRENS:
-          thisAmount += 1.5;
-          if (each.getDaysRented() > 3)
-            thisAmount += (each.getDaysRented() - 3) * 1.5;
-          break;
-      }
-      // add frequent renter points
-      frequentRenterPoints++;
-      // add bonus for a two day new release rental
-      if ((each.getMovie().getPriceCode() == Movie.NEW_RELEASE)
-          &&
-          each.getDaysRented() > 1) frequentRenterPoints++;
-
       //show figures for this rental
-      result += "\t" + each.getMovie().getTitle() + "\t" +
-          String.valueOf(thisAmount) + "\n";
-      totalAmount += thisAmount;
+      result += "\t<strong>" + each.getMovie().getTitle() + "</strong>\t" +
+              String.valueOf(each.amount()) + "\n";
     }
+    result += "Amount owed is <strong>" + String.valueOf(totalAmount()) + "</strong>\n";
+    result += "You earned <strong>" + String.valueOf(frequentRenterPoints())
+            + "</strong> frequent renter points";
+    return  result;
+  }
 
-    //add footer lines result
-    result += "Amount owed is " + String.valueOf(totalAmount) + "\n";
-    result += "You earned " + String.valueOf(frequentRenterPoints)
-        + " frequent renter points";
-    return result;
+  private int frequentRenterPoints() {
+    return rentals.stream().mapToInt((rentals -> rentals.frequentRenterPoints())).sum();
+  }
+
+  private double totalAmount() {
+    return rentals.stream().mapToDouble(rental -> rental.amount()).sum();
+  }
+
+  private class TextStatement {
+    public String display(String name, double totalAmount, int frequentRenterPoints) {
+      String result = "Rental Record for " + name + "\n";
+
+      for (Rental each : rentals) {
+        //show figures for this rental
+        result += "\t" + each.getMovie().getTitle() + "\t" +
+            String.valueOf(each.amount()) + "\n";
+      }
+
+      //add footer lines result
+      result += "Amount owed is " + String.valueOf(totalAmount) + "\n";
+      result += "You earned " + String.valueOf(frequentRenterPoints)
+          + " frequent renter points";
+      return result;
+    }
   }
 }
 
